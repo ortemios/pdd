@@ -1,8 +1,8 @@
 from enum import Enum
 
+from model.question import Question
 
-class QuizCategory(Enum):
-    AB = "ab"
-    CD = "cd"
-    SCHEDULE_TOPIC = "schedule_topic"
-    SCHEDULE_FREQ = "schedule_freq"
+
+class QuizCategory:
+    id: str
+    title: str

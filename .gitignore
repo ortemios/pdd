@@ -1,4 +1,6 @@
 config.py
+pdd_russia/
+.aws/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
