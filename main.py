@@ -4,12 +4,11 @@
 import logging
 from typing import Callable, Awaitable
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, ContextTypes, MessageHandler, filters, CallbackQueryHandler
 
 from config import TOKEN
 from model.menu_state import MenuState
-from model.question import Question
 from model.user import User
 from repository.repository_inst import user_repository, category_repository, question_repository
 
@@ -47,17 +46,35 @@ async def send_question(user: User, update: Update):
     )
     if update.callback_query:
         keyboard = []
+        answers = []
         for index, answer in enumerate(question.answers):
             keyboard.append([InlineKeyboardButton(
-                f'{index+1}. {answer}',
+                str(index + 1),
                 callback_data=f'{index}',
             )])
+            answers.append(f'{index+1}. {answer}')
         await send_message(
             update,
-            text=question.text,
+            text=f'{question.text}\n\n' + '\n'.join(answers),
             photo_url=question.image,
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
+
+
+async def send_main_menu(user: User, update: Update):
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                f'📖Категории вопросов',
+                callback_data='categories',
+            ),
+        ],
+    ]
+    await send_message(
+        update,
+        text='Выберите опцию:',
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
 
 async def home_menu_handler(user: User, update: Update):
@@ -77,7 +94,7 @@ async def home_menu_handler(user: User, update: Update):
             user.quiz_category_id = category.id
             await send_question(user, update)
 
-    if message and message.text == '/categories':
+    if query and query.data == 'categories':
         keyboard = list(map(
             lambda c: [InlineKeyboardButton(
                 c.title,
@@ -86,7 +103,10 @@ async def home_menu_handler(user: User, update: Update):
             await category_repository.get_categories(),
         ))
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await send_message(update, "Выберите категорию: ", reply_markup=reply_markup)
+        await send_message(update, "Выберите категорию:", reply_markup=reply_markup)
+
+    if message and message.text == '/start':
+        await send_main_menu(user, update)
 
 
 async def quiz_menu_handler(user: User, update: Update):
@@ -97,20 +117,21 @@ async def quiz_menu_handler(user: User, update: Update):
             user.question_index
         )
         if answer_index == str(question.correct_answer_index):
-            await send_message(update, text=f'Правильно!')
+            await send_message(update, text=f'✅️️Правильно!')
         else:
             await send_message(
                 update,
-                text=f'''Неправильный ответ.
+                text=f'''❌Неправильный ответ.
 Номер правильного ответа: {question.correct_answer_index+1}.
 {question.answer_tip}'''
             )
         if user.question_index == 2:
             await send_message(
                 update,
-                text='Тест завершен!'
+                text='🏁Тест завершен!'
             )
             user.menu_state = MenuState.HOME
+            await send_main_menu(user, update)
         else:
             user.question_index += 1
             await send_question(user, update)

@@ -28,7 +28,7 @@ class CategoryRepository:
                 lambda name: self._id_to_category(path + name.split('.')[0]),
                 await data_source.list_dir(path)
             ))
-        return list(sorted(categories, key=natural_keys))
+        return list(sorted(categories, key=natural_keys))[1:]
 
     def _id_to_category(self, category_id: str) -> QuizCategory:
         tokens = category_id.split('/')
