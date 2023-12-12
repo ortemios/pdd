@@ -3,8 +3,6 @@ import random
 
 class DataSource:
 
-    name: int = random.randint(0, 1000)
-
     async def write_json(self, path: str, data: dict):
         raise NotImplementedError()
 

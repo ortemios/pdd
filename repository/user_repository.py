@@ -29,7 +29,7 @@ class UserRepository:
             return UserMapper().from_json(
                 await data_source.read_json(path=self._path(user_id))
             )
-        except:
+        except Exception as e:
             return None
 
     async def read_or_create(self, user_id: int) -> User:
