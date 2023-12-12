@@ -53,7 +53,11 @@ async def send_question(user: User, update: Update):
                 callback_data=f'{index}',
             )])
             answers.append(f'{index + 1}. {answer}')
-        text = f'❓Вопрос {user.question_index+1}/{question.total_questions}\n\n' + \
+        keyboard.append([InlineKeyboardButton(
+            '🛑Прервать тест',
+            callback_data=f'quiz stop',
+        )])
+        text = f'❓Вопрос {user.question_index + 1}/{question.total_questions}\n\n' + \
                f'{question.text}\n\n' + \
                '\n'.join(answers)
         await send_message(
@@ -129,21 +133,23 @@ async def home_menu_handler(user: User, update: Update):
 
 async def quiz_menu_handler(user: User, update: Update):
     if update.callback_query:
-        answer_index = update.callback_query.data
+        answer = update.callback_query.data
         question = await question_repository.get_question(
             user.quiz_category_id,
             user.question_index
         )
-        if answer_index == str(question.correct_answer_index):
-            await send_message(update, text=f'✅️️Правильно!')
-        else:
-            await send_message(
-                update,
-                text=f'❌Неправильный ответ.\n' +
-                     f'Номер правильного ответа: {question.correct_answer_index + 1}.\n' +
-                     f'{question.answer_tip}'
-            )
-        if user.question_index + 1 >= question.total_questions:
+        if answer.isdigit():
+            if answer == str(question.correct_answer_index):
+                await send_message(update, text=f'✅️️Правильно!')
+            else:
+                await send_message(
+                    update,
+                    text=f'❌Неправильный ответ.\n' +
+                         f'Номер правильного ответа: {question.correct_answer_index + 1}.\n' +
+                         f'{question.answer_tip}'
+                )
+        if user.question_index + 1 >= question.total_questions or \
+                answer == 'quiz stop':
             await send_message(
                 update,
                 text='🏁Тест завершен!'
