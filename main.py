@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # pylint: disable=unused-argument
-
+import base64
 import logging
 from typing import Callable, Awaitable
 
@@ -55,13 +55,13 @@ async def send_question(user: User, update: Update):
             answers.append(f'{index+1}. {answer}')
         await send_message(
             update,
-            text=f'{question.text}\n\n' + '\n'.join(answers),
+            text=f'❓{question.text}\n\n' + '\n'.join(answers),
             photo_url=question.image,
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
 
-async def send_main_menu(user: User, update: Update):
+async def send_main_menu(update: Update):
     keyboard = [
         [
             InlineKeyboardButton(
@@ -79,34 +79,49 @@ async def send_main_menu(user: User, update: Update):
 
 async def home_menu_handler(user: User, update: Update):
     query = update.callback_query
-    message = update.message
 
-    if query and query.data.startswith('/quiz'):
-        text = query.data
-        await query.answer()
-        args = text.split()[1:]
-        if len(args) == 0:
+    if query and query.data.startswith('quiz'):
+        args = query.data.split()[1:]
+        if len(args) < 1:
             await send_message(update, text="Укажите категорию")
         else:
-            category = await category_repository.get_category(args[0])
             user.question_index = 0
             user.menu_state = MenuState.QUIZ
-            user.quiz_category_id = category.id
+            user.quiz_category_id = args[0]
             await send_question(user, update)
 
     if query and query.data == 'categories':
         keyboard = list(map(
             lambda c: [InlineKeyboardButton(
                 c.title,
-                callback_data=f'/quiz {c.id}',
+                callback_data=f'category_group {c.id}',
             )],
-            await category_repository.get_categories(),
+            await category_repository.get_category_groups(),
         ))
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await send_message(update, "Выберите категорию:", reply_markup=reply_markup)
+        await send_message(
+            update,
+            "Выберите категорию:",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
 
-    if message and message.text == '/start':
-        await send_main_menu(user, update)
+    if query and query.data.startswith('category_group'):
+        args = query.data.split()[1:]
+        if len(args) == 0:
+            await send_message(update, text="Укажите категорию")
+        else:
+            group_id = args[0]
+            keyboard = list(map(
+                lambda c: [InlineKeyboardButton(
+                    c.title,
+                    callback_data=f'quiz {c.id}',
+                )],
+                await category_repository.get_categories(group_id=group_id),
+            ))
+            await send_message(
+                update,
+                "Выберите вариант:",
+                reply_markup=InlineKeyboardMarkup(keyboard),
+            )
 
 
 async def quiz_menu_handler(user: User, update: Update):
@@ -131,7 +146,7 @@ async def quiz_menu_handler(user: User, update: Update):
                 text='🏁Тест завершен!'
             )
             user.menu_state = MenuState.HOME
-            await send_main_menu(user, update)
+            await send_main_menu(update)
         else:
             user.question_index += 1
             await send_question(user, update)
@@ -146,12 +161,17 @@ menu_state_handlers: dict[MenuState, Callable[[User, Update], Awaitable[None]]] 
 async def message_handler(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
     user = await user_repository.read_or_create(user_id)
+
+    if update.message and update.message.text == '/start':
+        await send_main_menu(update)
+
     if user.menu_state in menu_state_handlers:
         await menu_state_handlers[user.menu_state](user, update)
     await user_repository.update(user)
 
 
 async def button_handler(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.callback_query.answer()
     await message_handler(update, _)
 
 

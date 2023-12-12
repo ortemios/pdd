@@ -6,3 +6,4 @@ from model.question import Question
 class QuizCategory:
     id: str
     title: str
+    path: str
