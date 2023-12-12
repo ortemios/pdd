@@ -38,7 +38,11 @@ class RemoteDataSource(DataSource):
 
     async def list_dir(self, path: str) -> list[str]:
         res = []
-        for item in self.s3.list_objects(Bucket=self.BUCKET_NAME)['Contents']:
+        items = self.s3.list_objects(
+            Bucket=self.BUCKET_NAME,
+            Prefix=path,
+        )['Contents']
+        for item in items:
             key = item['Key']
             if key.startswith(path):
                 name = key[len(path)+1:].split('/')[0]
@@ -46,33 +50,13 @@ class RemoteDataSource(DataSource):
                     res.append(name)
         return res
 
-
-    # session = boto3.session.Session()
-    # s3 = session.client(
-    #     service_name='s3',
-    #     endpoint_url='https://storage.yandexcloud.net'
-    # )
-    #
-    # # Создать новый бакет
-    # s3.create_bucket(Bucket='bucket-name')
-    #
-    # # Загрузить объекты в бакет
-    #
-    # ## Из строки
-    # s3.put_object(Bucket='bucket-name', Key='object_name', Body='TEST', StorageClass='COLD')
-    #
-    # ## Из файла
-    # s3.upload_file('this_script.py', 'bucket-name', 'py_script.py')
-    # s3.upload_file('this_script.py', 'bucket-name', 'script/py_script.py')
-    #
-    # # Получить список объектов в бакете
-    # for key in s3.list_objects(Bucket='bucket-name')['Contents']:
-    #     print(key['Key'])
-    #
-    # # Удалить несколько объектов
-    # forDeletion = [{'Key': 'object_name'}, {'Key': 'script/py_script.py'}]
-    # response = s3.delete_objects(Bucket='bucket-name', Delete={'Objects': forDeletion})
-    #
-    # # Получить объект
-    # get_object_response = s3.get_object(Bucket='bucket-name', Key='py_script.py')
-    # print(get_object_response['Body'].read())
+    async def generate_link(self, path: str) -> str:
+        response = self.s3.generate_presigned_url(
+            'get_object',
+            Params={
+                'Bucket': self.BUCKET_NAME,
+                'Key': path
+            },
+            ExpiresIn=3600
+        )
+        return response

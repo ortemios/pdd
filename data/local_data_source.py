@@ -23,4 +23,4 @@ class LocalDataSource(DataSource):
         return list(filter(
             lambda item: item,
             os.listdir(self._path(path))
-        ))
+        ))[1:]

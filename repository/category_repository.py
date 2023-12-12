@@ -36,7 +36,7 @@ class CategoryRepository:
             self._id_to_category(group_id, name, index)
             for index, name in enumerate(await data_source.list_dir(path))
         ]
-        return list(sorted(categories, key=natural_keys))[1:]
+        return list(sorted(categories, key=natural_keys))
 
     def _id_to_category(self, group_id: str, name: str, index: int) -> QuizCategory:
         path = f"{group_id}/{name.split('.')[0]}"

@@ -13,8 +13,12 @@ class QuestionRepository:
             category = await CategoryRepository().get_category(category_id)
             questions = await data_source.read_json(f'{category.path}.json')
             json = questions[index - 1]
-            return QuestionMapper().from_json(json)
-        except:
+            question = QuestionMapper().from_json(json)
+            if question.image:
+                question.image = await data_source.generate_link(question.image)
+            return question
+        except Exception as e:
+            print(e)
             return None
 
 

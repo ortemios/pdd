@@ -5,9 +5,11 @@ from model.question import Question
 class QuestionMapper:
 
     def from_json(self, json: dict) -> Question:
+        image = json["image"][2:]
         question = Question()
         question.id = json['id']
-        question.image = f'https://raw.githubusercontent.com/etspring/pdd_russia/master{json["image"][1:]}?raw=true' if 'no_image.jpg' not in json["image"] else ''
+        question.image = image if 'no_image.jpg' not in image else ''
+        #question.image = f'https://raw.githubusercontent.com/etspring/pdd_russia/master{json["image"][1:]}?raw=true' if 'no_image.jpg' not in json["image"] else ''
         question.text = json['question']
         question.answers = list(
             map(

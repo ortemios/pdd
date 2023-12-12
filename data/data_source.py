@@ -11,3 +11,6 @@ class DataSource:
 
     async def list_dir(self, path: str) -> list[str]:
         raise NotImplementedError()
+
+    async def generate_link(self, path: str) -> str:
+        raise NotImplementedError()
