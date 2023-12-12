@@ -52,10 +52,13 @@ async def send_question(user: User, update: Update):
                 str(index + 1),
                 callback_data=f'{index}',
             )])
-            answers.append(f'{index+1}. {answer}')
+            answers.append(f'{index + 1}. {answer}')
+        text = f'❓Вопрос {user.question_index+1}/{question.total_questions}\n\n' + \
+               f'{question.text}\n\n' + \
+               '\n'.join(answers)
         await send_message(
             update,
-            text=f'❓{question.text}\n\n' + '\n'.join(answers),
+            text=text,
             photo_url=question.image,
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
@@ -136,11 +139,11 @@ async def quiz_menu_handler(user: User, update: Update):
         else:
             await send_message(
                 update,
-                text=f'''❌Неправильный ответ.
-Номер правильного ответа: {question.correct_answer_index+1}.
-{question.answer_tip}'''
+                text=f'❌Неправильный ответ.\n' +
+                     f'Номер правильного ответа: {question.correct_answer_index + 1}.\n' +
+                     f'{question.answer_tip}'
             )
-        if user.question_index == 2:
+        if user.question_index + 1 >= question.total_questions:
             await send_message(
                 update,
                 text='🏁Тест завершен!'

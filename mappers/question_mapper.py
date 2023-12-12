@@ -9,7 +9,6 @@ class QuestionMapper:
         question = Question()
         question.id = json['id']
         question.image = image if 'no_image.jpg' not in image else ''
-        #question.image = f'https://raw.githubusercontent.com/etspring/pdd_russia/master{json["image"][1:]}?raw=true' if 'no_image.jpg' not in json["image"] else ''
         question.text = json['question']
         question.answers = list(
             map(

@@ -5,3 +5,4 @@ class Question:
     answers: list[str]
     correct_answer_index: int
     answer_tip: str
+    total_questions: int

@@ -14,6 +14,7 @@ class QuestionRepository:
             questions = await data_source.read_json(f'{category.path}.json')
             json = questions[index - 1]
             question = QuestionMapper().from_json(json)
+            question.total_questions = len(questions)
             if question.image:
                 question.image = await data_source.generate_link(question.image)
             return question
