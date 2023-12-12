@@ -24,6 +24,8 @@ from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandl
 from model.menu_state import MenuState
 from model.user import User
 from repository.user_repository import UserRepository
+from config import TOKEN
+
 
 # Enable logging
 logging.basicConfig(
@@ -38,12 +40,26 @@ user_repository = UserRepository()
 
 
 async def home_menu_handler(user: User, update: Update):
-    await update.message.reply_text(f"{update.message.text}, {user.question_index}")
-    user.question_index += 1
+    #await update.message.reply_text(f"{update.message.text}, {user.question_index}")
+    #user.question_index += 1
+    if update.message.text == '/quiz':
+        user.question_index = 0
+        user.menu_state = MenuState.QUIZ
+        await update.message.reply_text(f"{update.message.text}, {user.question_index+1}")
+
+
+async def quiz_menu_handler(user: User, update: Update):
+    await update.message.reply_text(f"{update.message.text}, {user.question_index + 1}")
+    if user.question_index == 3:
+        user.question_index = 0
+        user.menu_state = MenuState.HOME
+    else:
+        user.question_index += 1
 
 
 handlers: dict[MenuState, Callable[[User, Update], Awaitable[None]]] = {
     MenuState.HOME: home_menu_handler,
+    MenuState.QUIZ: quiz_menu_handler,
 }
 
 
@@ -59,7 +75,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token("6912350070:AAEAgyBPcszROt6HJehEviwTsOftIpEJ8JM").build()
+    application = Application.builder().token(TOKEN).build()
 
     application.add_handler(MessageHandler(filters.TEXT, echo))
 
