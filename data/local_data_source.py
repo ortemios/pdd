@@ -8,13 +8,19 @@ class LocalDataSource(DataSource):
 
     BASE_DIR = 'pdd_russia'
 
+    def _path(self, path: str) -> str:
+        return f'{self.BASE_DIR}/{path}'
+
     async def write_json(self, path: str, data: dict):
-        with open(f'{self.BASE_DIR}/{path}', 'w') as f:
+        with open(self._path(path), 'w') as f:
             json.dump(data, f)
 
     async def read_json(self, path: str) -> dict:
-        with open(f'{self.BASE_DIR}/{path}', 'r') as f:
+        with open(self._path(path), 'r') as f:
             return json.load(f)
 
     async def list_dir(self, path: str) -> list[str]:
-        return list(sorted(os.listdir(path)))
+        return list(filter(
+            lambda item: item,
+            os.listdir(self._path(path))
+        ))
