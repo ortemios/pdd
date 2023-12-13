@@ -1,6 +1,3 @@
-import random
-
-
 class DataSource:
 
     async def write_json(self, path: str, data: dict):

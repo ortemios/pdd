@@ -23,7 +23,7 @@ class LocalDataSource(DataSource):
         return list(filter(
             lambda item: item,
             os.listdir(self._path(path))
-        ))[1:]
+        ))
 
     async def generate_link(self, path: str) -> str:
         return f'https://raw.githubusercontent.com/etspring/pdd_russia/master/{path}?raw=true'
