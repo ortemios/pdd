@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument
 import json
 import logging
+from typing import Callable
 
 from telegram import Update
 from telegram.ext import Application, ContextTypes, MessageHandler, filters, CallbackQueryHandler
@@ -11,6 +12,7 @@ from bot.menu_state.menu_state_inst import MenuStateInst
 from bot.menu_state.quiz import QuizMenuState
 from config import TOKEN
 from model.menu_state import MenuState
+from model.user import User
 from repository.repository_inst import user_repository
 
 # Enable logging
@@ -23,10 +25,17 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-menu_state_handlers: dict[MenuState, MenuStateInst] = {
-    MenuState.HOME: HomeMenuState(),
-    MenuState.QUIZ: QuizMenuState(),
+menu_state_handlers: dict[MenuState, Callable[[], MenuStateInst]] = {
+    MenuState.HOME: lambda: HomeMenuState(),
+    MenuState.QUIZ: lambda: QuizMenuState(),
 }
+
+
+def get_menu_handler(user: User, update: Update) -> MenuStateInst:
+    handler_inst = menu_state_handlers[user.menu_state]()
+    handler_inst.update = update
+    handler_inst.user = user
+    return handler_inst
 
 
 async def message_handler(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
@@ -36,15 +45,15 @@ async def message_handler(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     if update.message and update.message.text == '/start':
         user.menu_state = MenuState.HOME
         await user_repository.update(user)
-        await menu_state_handlers[user.menu_state].on_enter(user, update)
+        await get_menu_handler(user, update).on_enter()
     else:
         old_state = user.menu_state
         if user.menu_state in menu_state_handlers:
-            await menu_state_handlers[user.menu_state].on_update(user, update)
+            await get_menu_handler(user, update).on_update()
         await user_repository.update(user)
         new_state = user.menu_state
         if old_state != new_state:
-            await menu_state_handlers[new_state].on_enter(user, update)
+            await get_menu_handler(user, update).on_enter()
 
 
 async def button_handler(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
