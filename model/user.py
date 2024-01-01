@@ -1,5 +1,4 @@
 from model.menu_state import MenuState
-from model.quiz_category import QuizCategory
 
 
 class User:

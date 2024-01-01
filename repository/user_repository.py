@@ -43,3 +43,8 @@ class UserRepository:
             path=self._path(user.id),
             data=UserMapper().to_json(user)
         )
+
+    async def read_all(self) -> list[User]:
+        return [await self.read(int(name.split('.')[0])) for name in await data_source.list_dir('users')]
+
+
