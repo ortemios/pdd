@@ -6,6 +6,7 @@ from bot.buttons.button_handler import ButtonCallback, ButtonHandler
 from bot.menu_state.menu_state_inst import MenuStateInst
 from model.menu_state import MenuState
 from repository.repository_inst import category_repository
+from res import strings
 
 
 class HomeMenuState(MenuStateInst):
@@ -25,36 +26,6 @@ class HomeMenuState(MenuStateInst):
                                         lambda args: self.send_schedule_timings(args, ButtonCallback.SCHEDULE_QUIZ))
         self.button_handler.add_handler(ButtonCallback.SCHEDULE_QUIZ, lambda args: self.send_schedule_quiz(args))
         self.button_handler.add_handler(ButtonCallback.SCHEDULE_CANCEL, lambda args: self.send_schedule_cancel())
-        #
-        # if query.data.startswith(ButtonCallback.QUIZ.value):
-        #     args = query.data.split()[1:]
-        #     if len(args) < 1:
-        #         await self.send_message(update, text="Укажите категорию")
-        #     else:
-        #         user.question_index = 0
-        #         user.menu_state = MenuState.QUIZ
-        #         user.quiz_category_id = args[0]
-        #
-        # if query.data == ButtonCallback.CATEGORIES.value:
-        #     await self.send_category_groups(update, ButtonCallback.CATEGORY_GROUP)
-        #
-        # if query.data.startswith(ButtonCallback.CATEGORY_GROUP.value):
-        #     await self.send_categories(update, ButtonCallback.QUIZ)
-        #
-        # if query.data == ButtonCallback.SCHEDULE_CATEGORIES.value:
-        #     await self.send_category_groups(update, ButtonCallback.SCHEDULE_CATEGORY_GROUP)
-        #
-        # if query.data.startswith(ButtonCallback.SCHEDULE_CATEGORY_GROUP.value):
-        #     await self.send_categories(update, ButtonCallback.SCHEDULE_CATEGORY_TIMINGS)
-        #
-        # if query.data.startswith(ButtonCallback.SCHEDULE_CATEGORY_TIMINGS.value):
-        #     await self.send_schedule_timings(update, ButtonCallback.SCHEDULE_QUIZ)
-        #
-        # if query.data.startswith(ButtonCallback.SCHEDULE_QUIZ.value):
-        #     await self.send_schedule_quiz(update, user)
-        #
-        # if query.data == ButtonCallback.SCHEDULE_CANCEL.value:
-        #     await self.send_schedule_cancel(update, user)
 
     async def on_enter(self):
         await self.send_main_menu()
@@ -64,7 +35,7 @@ class HomeMenuState(MenuStateInst):
 
     async def start_quiz(self, args: list[Any]):
         if len(args) < 1:
-            await self.send_message(text="Укажите категорию")
+            await self.send_message(text=strings.specify_category)
         else:
             self.user.question_index = 0
             self.user.menu_state = MenuState.QUIZ
@@ -74,13 +45,13 @@ class HomeMenuState(MenuStateInst):
         keyboard = [
             [
                 InlineKeyboardButton(
-                    f'📖Категории вопросов',
+                    strings.question_categories,
                     callback_data=ButtonCallback.CATEGORIES.value,
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    f'📖Запланировать рассылку',
+                    strings.schedule_sending,
                     callback_data=ButtonCallback.SCHEDULE_CATEGORIES.value,
                 ),
             ],
@@ -88,12 +59,12 @@ class HomeMenuState(MenuStateInst):
         if self.user.scheduled_frequency > 0 and self.user.scheduled_category_id:
             keyboard[-1].append(
                 InlineKeyboardButton(
-                    f'📖Отменить рассылку',
+                    strings.cancel_sending,
                     callback_data=ButtonCallback.SCHEDULE_CANCEL.value,
                 )
             )
         await self.send_message(
-            text='Выберите опцию:',
+            text=strings.choose_option,
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
@@ -106,13 +77,13 @@ class HomeMenuState(MenuStateInst):
             await category_repository.get_category_groups(),
         ))
         await self.send_message(
-            "Выберите категорию:",
+            strings.choose_category,
             reply_markup=InlineKeyboardMarkup(keyboard),
         )
 
     async def send_categories(self, args: list[Any], callback_id: ButtonCallback):
         if len(args) < 1:
-            await self.send_message(text="Укажите категорию")
+            await self.send_message(text=strings.choose_category)
         else:
             group_id = str(args[0])
             keyboard = list(map(
@@ -123,13 +94,13 @@ class HomeMenuState(MenuStateInst):
                 await category_repository.get_categories(group_id=group_id),
             ))
             await self.send_message(
-                "Выберите вариант:",
+                strings.choose_variant,
                 reply_markup=InlineKeyboardMarkup(keyboard),
             )
 
     async def send_schedule_timings(self, args: list[Any], callback_id: ButtonCallback):
         if len(args) < 1:
-            await self.send_message(text="Укажите ID варианта")
+            await self.send_message(text=strings.choose_variant)
         else:
             category_id = args[0]
             keyboard = list(map(
@@ -140,27 +111,23 @@ class HomeMenuState(MenuStateInst):
                 range(1, 11)
             ))
             await self.send_message(
-                "Выберите число отправок в сутки:",
+                strings.choose_frequency,
                 reply_markup=InlineKeyboardMarkup(keyboard),
             )
 
     async def send_schedule_quiz(self, args: list[Any]):
         if len(args) < 2 or not args[1].isdigit():
-            await self.send_message(text="Укажите ID варианта и частоту отправки")
+            await self.send_message(text=strings.choose_frequency)
         else:
             category_id = str(args[0])
             frequency = int(args[1])
             self.user.scheduled_category_id = category_id
             self.user.scheduled_frequency = frequency
-            await self.send_message(
-                "Отправка запланирована"
-            )
+            await self.send_message(strings.scheduled_succ)
             await self.send_main_menu()
 
     async def send_schedule_cancel(self):
         self.user.scheduled_category_id = ''
         self.user.scheduled_frequency = 0
-        await self.send_message(
-            "Отправка отменена"
-        )
+        await self.send_message(strings.schedule_cancel)
         await self.send_main_menu()

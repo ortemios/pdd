@@ -3,6 +3,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from bot.menu_state.menu_state_inst import MenuStateInst
 from model.menu_state import MenuState
 from repository.repository_inst import question_repository
+from res import strings
 
 
 class QuizMenuState(MenuStateInst):
@@ -22,10 +23,10 @@ class QuizMenuState(MenuStateInst):
                 )])
                 answers.append(f'{index + 1}. {answer}')
             keyboard.append([InlineKeyboardButton(
-                '🛑Прервать тест',
+                strings.stop_quiz,
                 callback_data=f'quiz stop',
             )])
-            text = f'❓Вопрос {self.user.question_index + 1}/{question.total_questions}\n\n' + \
+            text = f'{strings.question_number} {self.user.question_index + 1}/{question.total_questions}\n\n' + \
                    f'{question.text}\n\n' + \
                    '\n'.join(answers)
             await self.send_message(
@@ -46,18 +47,16 @@ class QuizMenuState(MenuStateInst):
             )
             if answer.isdigit():
                 if answer == str(question.correct_answer_index):
-                    await self.send_message(text=f'✅️️Правильно!')
+                    await self.send_message(text=strings.correct)
                 else:
                     await self.send_message(
-                        text=f'❌Неправильный ответ.\n' +
-                             f'Номер правильного ответа: {question.correct_answer_index + 1}.\n' +
+                        text=f'{strings.wrong_answer}\n' +
+                             f'{strings.correct_answer_number} {question.correct_answer_index + 1}.\n' +
                              f'{question.answer_tip}'
                     )
             if self.user.question_index + 1 >= question.total_questions or \
                     answer == 'quiz stop':
-                await self.send_message(
-                    text='🏁Тест завершен!'
-                )
+                await self.send_message(strings.quiz_complete)
                 self.user.menu_state = MenuState.HOME
             else:
                 self.user.question_index += 1
