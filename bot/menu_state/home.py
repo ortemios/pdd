@@ -86,13 +86,37 @@ class HomeMenuState(MenuStateInst):
             await self.send_message(text=strings.choose_category)
         else:
             group_id = str(args[0])
+            page = 0
+            if len(args) > 1 and args[1].isdigit():
+                page = int(args[1])
+            categories = await category_repository.get_categories(group_id=group_id)
+            page_size = 10
+
+            first = page * page_size
+            last = first + page_size
+
             keyboard = list(map(
                 lambda c: [InlineKeyboardButton(
                     c.title,
                     callback_data=f'{callback_id.value} {c.id}',
                 )],
-                await category_repository.get_categories(group_id=group_id),
+                categories[first:last],
             ))
+
+            nav_buttons = []
+            if first > 0:
+                nav_buttons.append(InlineKeyboardButton(
+                    strings.back,
+                    callback_data=f'{ButtonCallback.CATEGORY_GROUP.value} {group_id} {page-1}',
+                ))
+            if last < len(categories):
+                nav_buttons.append(InlineKeyboardButton(
+                    strings.forth,
+                    callback_data=f'{ButtonCallback.CATEGORY_GROUP.value} {group_id} {page+1}',
+                ))
+            if len(nav_buttons) > 0:
+                keyboard.append(nav_buttons)
+
             await self.send_message(
                 strings.choose_variant,
                 reply_markup=InlineKeyboardMarkup(keyboard),

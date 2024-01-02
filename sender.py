@@ -7,6 +7,7 @@ from telegram.ext import Application
 import config
 from model.menu_state import MenuState
 from repository.repository_inst import user_repository
+from res import strings
 
 
 async def handler(event, context):
@@ -28,17 +29,17 @@ async def handler(event, context):
             if index % n >= 0:
                 await application.bot.send_message(
                     chat_id=user.id,
-                    text='Время решить тест...',
+                    text=strings.time_to_solve,
                     reply_markup=InlineKeyboardMarkup([
                         [
                             InlineKeyboardButton(
-                                text='Начать',
+                                text=strings.start,
                                 callback_data=f'quiz {user.scheduled_category_id}'
                             )
                         ],
                         [
                             InlineKeyboardButton(
-                                text=f'Отменить рассылку',
+                                text=strings.cancel_sending,
                                 callback_data='schedule_cancel'
                             )
                         ]

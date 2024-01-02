@@ -4,6 +4,7 @@ from typing import Optional
 from model.category_group import CategoryGroup
 from model.quiz_category import QuizCategory
 from data.data_source_inst import file_data_source
+from res import strings
 
 
 class CategoryRepository:
@@ -18,10 +19,10 @@ class CategoryRepository:
 
     async def get_category_groups(self) -> list[CategoryGroup]:
         return [
-            CategoryGroup(id='questions/A_B/tickets', title='A/B, варианты'),
-            CategoryGroup(id='questions/C_D/tickets', title='C/D, варианты'),
-            CategoryGroup(id='questions/A_B/topics', title='A/B, темы'),
-            CategoryGroup(id='questions/C_D/topics', title='C/D, темы'),
+            CategoryGroup(id='questions/A_B/tickets', title=strings.variants_a_b),
+            CategoryGroup(id='questions/C_D/tickets', title=strings.variants_c_d),
+            CategoryGroup(id='questions/A_B/topics', title=strings.subjects_a_b),
+            CategoryGroup(id='questions/C_D/topics', title=strings.subjects_c_d),
         ]
 
     async def get_categories(self, group_id: str) -> list[QuizCategory]:
