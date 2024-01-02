@@ -1,4 +1,4 @@
-class DataSource:
+class FileDataSource:
 
     async def write_json(self, path: str, data: dict):
         raise NotImplementedError()

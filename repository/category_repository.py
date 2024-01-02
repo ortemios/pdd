@@ -3,7 +3,7 @@ from typing import Optional
 
 from model.category_group import CategoryGroup
 from model.quiz_category import QuizCategory
-from data.data_source_inst import data_source
+from data.data_source_inst import file_data_source
 
 
 class CategoryRepository:
@@ -12,7 +12,7 @@ class CategoryRepository:
         tokens = category_id.split('/')
         group_id = '/'.join(tokens[:-1])
         index = int(tokens[-1])
-        for i, name in enumerate(await data_source.list_dir(group_id)):
+        for i, name in enumerate(await file_data_source.list_dir(group_id)):
             if i == index:
                 return self._id_to_category(group_id, name, index)
 
@@ -34,7 +34,7 @@ class CategoryRepository:
         path = group_id
         categories: list[QuizCategory] = [
             self._id_to_category(group_id, name, index)
-            for index, name in enumerate(await data_source.list_dir(path))
+            for index, name in enumerate(await file_data_source.list_dir(path))
         ]
         return list(sorted(categories, key=natural_keys))
 

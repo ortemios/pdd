@@ -1,10 +1,10 @@
 import json
 import os
 
-from data.data_source import DataSource
+from data.file.file_data_source import FileDataSource
 
 
-class LocalDataSource(DataSource):
+class LocalFileDataSource(FileDataSource):
 
     BASE_DIR = 'pdd_russia'
 

@@ -3,10 +3,10 @@ import json
 import boto3
 
 import config
-from data.data_source import DataSource
+from data.file.file_data_source import FileDataSource
 
 
-class RemoteDataSource(DataSource):
+class RemoteFileDataSource(FileDataSource):
 
     BUCKET_NAME = 'pddrussia'
 

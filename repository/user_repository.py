@@ -3,7 +3,7 @@ from typing import Optional
 from mappers.user_mapper import UserMapper
 from model.menu_state import MenuState
 from model.user import User
-from data.data_source_inst import data_source
+from data.data_source_inst import file_data_source
 
 
 class UserRepository:
@@ -27,7 +27,7 @@ class UserRepository:
     async def read(self, user_id: int) -> Optional[User]:
         try:
             return UserMapper().from_json(
-                await data_source.read_json(path=self._path(user_id))
+                await file_data_source.read_json(path=self._path(user_id))
             )
         except Exception as e:
             return None
@@ -39,12 +39,12 @@ class UserRepository:
         return user
 
     async def update(self, user: User):
-        await data_source.write_json(
+        await file_data_source.write_json(
             path=self._path(user.id),
             data=UserMapper().to_json(user)
         )
 
     async def read_all(self) -> list[User]:
-        return [await self.read(int(name.split('.')[0])) for name in await data_source.list_dir('users')]
+        return [await self.read(int(name.split('.')[0])) for name in await file_data_source.list_dir('users')]
 
 
