@@ -1,12 +1,13 @@
 from typing import Optional
 
+from data.data_source_inst import file_data_source
 from mappers.user_mapper import UserMapper
 from model.menu_state import MenuState
 from model.user import User
-from data.data_source_inst import file_data_source
+from repository.user_repository.user_repository import UserRepository
 
 
-class UserRepository:
+class FileUserRepository(UserRepository):
 
     _users: dict[int, User] = {}
 
@@ -32,12 +33,6 @@ class UserRepository:
         except Exception as e:
             return None
 
-    async def read_or_create(self, user_id: int) -> User:
-        user = await self.read(user_id)
-        if user is None:
-            user = await self.create(user_id)
-        return user
-
     async def update(self, user: User):
         await file_data_source.write_json(
             path=self._path(user.id),
@@ -46,5 +41,4 @@ class UserRepository:
 
     async def read_all(self) -> list[User]:
         return [await self.read(int(name.split('.')[0])) for name in await file_data_source.list_dir('users')]
-
 

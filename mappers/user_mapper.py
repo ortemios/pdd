@@ -22,3 +22,13 @@ class UserMapper:
         user.scheduled_category_id = json['scheduled_category_id']
         user.scheduled_frequency = json['scheduled_frequency']
         return user
+
+    def from_sql(self, row) -> User:
+        user = User()
+        user.id = row[0]
+        user.menu_state = MenuState(row[1])
+        user.quiz_category_id = row[2]
+        user.question_index = row[3]
+        user.scheduled_category_id = row[4]
+        user.scheduled_frequency = row[5]
+        return user
